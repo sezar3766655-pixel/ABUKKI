@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABUKKI ROBOT</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;min-height:100dvh;
+ background:radial-gradient(ellipse at center,#071a35,#020713 70%);
+ color:white;font-family:Arial;
+ display:flex;flex-direction:column;
+ align-items:center;justify-content:space-evenly;
+ padding:15px 12px 22px;overflow:auto;
+}
+h2{color:#48baff;letter-spacing:4px;margin:12px 0}
+.scene{width:100%;height:min(48vh,390px);display:flex;align-items:center;justify-content:center}
+.robot{width:min(310px,90vw);height:100%;filter:drop-shadow(0 0 25px #087dff);touch-action:none;overflow:visible}
+.eye{fill:#00c8ff;filter:drop-shadow(0 0 10px #00aaff)}
+#face{transition:.2s}
+#leftArm,#rightArm{transform-box:fill-box;transform-origin:top center;transition:transform .45s}
+.robot.happy #leftArm{transform:rotate(35deg)}
+.robot.happy #rightArm{transform:rotate(-35deg)}
+.robot.sad{animation:cry .13s 6}
+.robot.happy{animation:joy .35s 5 alternate}
+.robot.jump{animation:jump .4s 4}
+.robot.sleep{animation:sleep 2s infinite}
+@keyframes cry{25%{translate:-8px 0}75%{translate:8px 0}}
+@keyframes joy{to{translate:0 -10px;rotate:3deg}}
+@keyframes jump{50%{translate:0 -38px}}
+@keyframes sleep{50%{scale:.96}}
+#message{color:#8bdcff;font-size:19px;text-align:center;line-height:1.5;min-height:58px;margin:8px 0}
+#note{color:#789bbd;text-align:center;font-size:14px;margin:4px 0}
+.back{
+ position:static;margin:12px auto 5px;
+ border:0;border-radius:35px;padding:15px 30px;
+ background:#087fff;color:white;font-size:18px;
+}
+</style>
+</head>
+<body>
+<h2>ABUKKI ROBOT</h2>
+<div class="scene">
+<svg class="robot" id="robot" viewBox="0 0 300 340">
+<defs>
+ <linearGradient id="metal" x2="1" y2="1">
+  <stop stop-color="#fff"/><stop offset=".5" stop-color="#a9c8e8"/><stop offset="1" stop-color="#526d91"/>
+ </linearGradient>
+ <linearGradient id="dark" x2="0" y2="1">
+  <stop stop-color="#172e50"/><stop offset="1" stop-color="#020711"/>
+ </linearGradient>
+</defs>
+<path d="M150 43V15" stroke="#b8d9ff" stroke-width="9"/>
+<circle cx="150" cy="13" r="12" fill="#00baff"/>
+<rect x="25" y="112" width="250" height="180" rx="62" fill="url(#metal)" stroke="#d8edff" stroke-width="5"/>
+<rect x="42" y="127" width="216" height="135" rx="55" fill="url(#dark)" stroke="#6caeff" stroke-width="5"/>
+<g id="face">
+ <ellipse class="eye" cx="102" cy="190" rx="17" ry="25"/>
+ <ellipse class="eye" cx="198" cy="190" rx="17" ry="25"/>
+</g>
+<path d="M100 291L80 327M200 291L220 327" stroke="url(#metal)" stroke-width="24" stroke-linecap="round"/>
+<g id="leftArm" stroke="url(#metal)" stroke-width="23" stroke-linecap="round" fill="none">
+ <path d="M48 185 Q12 195 18 235"/>
+</g>
+<g id="rightArm" stroke="url(#metal)" stroke-width="23" stroke-linecap="round" fill="none">
+ <path d="M252 185 Q288 195 282 235"/>
+</g>
+<circle cx="150" cy="283" r="22" fill="#087fff" stroke="#a9dcff" stroke-width="4"/>
+</svg>
+</div>
+<div id="message">Salom! Men ABUKKI robotman ❤️</div>
+<div id="note">Hozircha harakatlarim shu. Yaqinda yangilanaman! ❤️</div>
+<button class="back" onclick="history.back()">⬅️ Menyuga qaytish</button>
+
+<script>
+const r=document.getElementById("robot");
+const f=document.getElementById("face");
+const m=document.getElementById("message");
+let sx=0,sy=0,moved=false,timer,hold=false;
+
+function normal(){
+ r.className="robot";
+ f.innerHTML='<ellipse class="eye" cx="102" cy="190" rx="17" ry="25"/><ellipse class="eye" cx="198" cy="190" rx="17" ry="25"/>';
+}
+function sleep(){
+ r.className="robot sleep";
+ f.innerHTML='<path d="M82 190 H122 M178 190 H218" stroke="#00c8ff" stroke-width="10" stroke-linecap="round"/>';
+ m.textContent="Zzz... Men uxlab qoldim 😴";
+}
+function cry(){
+ clearTimeout(timer);
+ r.className="robot sad";
+ f.innerHTML='<path d="M82 195 Q102 170 122 195 M178 195 Q198 170 218 195" stroke="#00c8ff" stroke-width="10" fill="none"/><path d="M125 238 Q150 255 175 238" stroke="#00c8ff" stroke-width="9" fill="none"/><circle cx="80" cy="215" r="8" fill="#00c8ff"/><circle cx="220" cy="215" r="8" fill="#00c8ff"/>';
+ m.textContent="Voy, meni urding! Yig‘layapman 🥺";
+ if(navigator.vibrate)navigator.vibrate(100);
+ setTimeout(()=>{normal();wakeTimer()},2200);
+}
+function happy(){
+ clearTimeout(timer);
+ r.className="robot happy";
+ f.innerHTML='<path d="M80 190 Q102 155 124 190 M176 190 Q198 155 220 190" stroke="#00c8ff" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M120 220 Q150 255 180 220" stroke="#00c8ff" stroke-width="10" fill="none" stroke-linecap="round"/>';
+ const words=["Hahaha! Qitiqlayapsan! 😂","Voy, juda yoqimli! ❤️","Yana silagin! 😍","Men juda xursandman! 🤗","Sen mening do‘stimsan! ✨","Voy-bo‘! 😁"];
+ m.textContent=words[Math.floor(Math.random()*words.length)];
+ if(navigator.vibrate)navigator.vibrate(35);
+ setTimeout(()=>{normal();wakeTimer()},2600);
+}
+function wakeTimer(){
+ clearTimeout(timer);
+ timer=setTimeout(sleep,9000);
+}
+r.addEventListener("pointerdown",e=>{
+ clearTimeout(timer);sx=e.clientX;sy=e.clientY;moved=false;hold=false;
+ r.setPointerCapture(e.pointerId);
+});
+r.addEventListener("pointermove",e=>{
+ if(Math.hypot(e.clientX-sx,e.clientY-sy)>10)moved=true;
+});
+r.addEventListener("pointerup",()=>{
+ if(moved)happy();else cry();
+});
+r.addEventListener("pointercancel",()=>wakeTimer());
+wakeTimer();
+</script>
+</body>
+</html>
