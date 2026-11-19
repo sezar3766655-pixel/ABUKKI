@@ -116,6 +116,8 @@ button:disabled{opacity:.45}
   <div class="profile-stat">💎 Olmos<b id="profileDiamonds">0</b></div>
   <div class="profile-stat">🔑 Kalit<b id="profileKeys">0</b></div>
   <div class="profile-stat">🎁 Qutilar<b id="profileOpened">0</b></div>
+  <div class="profile-stat">⭐ LEVEL<b id="profileLevel">1</b></div>
+  <div class="profile-stat">⚡ XP<b id="profileXP">0</b></div>
  </div>
 </div>
 
@@ -156,12 +158,15 @@ button:disabled{opacity:.45}
 let diamonds=Number(localStorage.getItem("abukki_test_diamonds")||0);
 let keys=Number(localStorage.getItem("abukki_test_keys")||3);
 let opened=Number(localStorage.getItem("abukki_test_opened")||0);
+let xp=Number(localStorage.getItem("abukki_player_xp")||0);
+let level=Math.floor(xp/100)+1;
 let records=JSON.parse(localStorage.getItem("abukki_test_records")||"[]");
 
 function save(){
  localStorage.setItem("abukki_test_diamonds",diamonds);
  localStorage.setItem("abukki_test_keys",keys);
  localStorage.setItem("abukki_test_opened",opened);
+ localStorage.setItem("abukki_player_xp",xp);
  localStorage.setItem("abukki_test_records",JSON.stringify(records));
  update();
 }
@@ -189,6 +194,8 @@ function updateProfile(){
  document.getElementById("profileDiamonds").textContent=diamonds;
  document.getElementById("profileKeys").textContent=keys;
  document.getElementById("profileOpened").textContent=opened;
+ document.getElementById("profileLevel").textContent=level;
+ document.getElementById("profileXP").textContent=xp;
 }
 
 function todayKey(){
@@ -234,6 +241,8 @@ function openChest(){
  result.textContent="✨ Quti ochilmoqda...";
  setTimeout(()=>{
   diamonds+=prize;
+  xp+=10;
+  level=Math.floor(xp/100)+1;
   opened++;
   records.unshift(prize);
   records=records.slice(0,5);
