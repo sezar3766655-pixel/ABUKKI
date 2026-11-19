@@ -83,6 +83,7 @@ button:disabled{opacity:.45}
   <div class="stat">🔑 Kalit: <b id="keys">3</b></div>
   <div class="stat">🎁 Ochilgan: <b id="opened">0</b></div>
  </div>
+ <button id="dailyBtn" onclick="claimDailyKey()" style="margin-top:10px;background:linear-gradient(100deg,#ffad32,#ff6b35)">🎁 Kunlik bepul kalit</button>
 
  <div class="chest" id="chest">
   <div class="lid"></div>
@@ -120,11 +121,31 @@ function save(){
  localStorage.setItem("abukki_test_records",JSON.stringify(records));
  update();
 }
+function todayKey(){
+ let d=new Date();
+ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+}
+
+function claimDailyKey(){
+ if(localStorage.getItem("abukki_daily_key_date")===todayKey()){
+  document.getElementById("result").textContent="⏳ Bugungi kalitni olib bo‘lgansan!";
+  return;
+ }
+ keys++;
+ localStorage.setItem("abukki_daily_key_date",todayKey());
+ document.getElementById("result").textContent="🎉 Kunlik kalit olindi! +1 🔑";
+ save();
+}
+
 function update(){
  document.getElementById("diamonds").textContent=diamonds;
  document.getElementById("keys").textContent=keys;
  document.getElementById("opened").textContent=opened;
  document.getElementById("openBtn").disabled=keys<=0;
+ let dailyBtn=document.getElementById("dailyBtn");
+ let claimed=localStorage.getItem("abukki_daily_key_date")===todayKey();
+ dailyBtn.disabled=claimed;
+ dailyBtn.textContent=claimed?"✅ Bugungi kalit olindi":"🎁 Kunlik bepul kalit";
  document.getElementById("records").innerHTML=records.length
  ?records.map(x=>"💎 "+x+" olmos").join("<br>")
  :"Hali sovrin yutilmadi.";
