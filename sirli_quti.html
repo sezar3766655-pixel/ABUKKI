@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABUKKI — Sirli Quti</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;color:white;
+ font-family:Arial,sans-serif;
+ background:radial-gradient(circle at top,#19265a,#070b1b 65%);
+ text-align:center;padding:20px;
+}
+header{display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:23px;font-weight:900;letter-spacing:2px;color:#83eaff}
+.balance{
+ background:#172449;border:1px solid #425b9b;
+ padding:10px 15px;border-radius:14px;color:#77edff;font-weight:bold
+}
+h1{margin:35px 0 8px;font-size:30px}
+.sub{color:#aab7d5;font-size:14px}
+.arena{
+ margin:30px auto 20px;max-width:420px;
+ padding:25px 15px;border:1px solid #354779;
+ border-radius:25px;background:linear-gradient(145deg,#18264a,#10152c);
+ box-shadow:0 15px 45px #0008;
+}
+.chest{
+ position:relative;margin:25px auto 35px;width:180px;height:145px;
+ filter:drop-shadow(0 12px 20px #00bfff55);
+ animation:float 2s ease-in-out infinite;
+}
+.lid{
+ position:absolute;top:12px;left:7px;width:166px;height:58px;
+ background:linear-gradient(135deg,#ffdc75,#a75b17);
+ border:5px solid #ffbd42;border-radius:24px 24px 8px 8px;
+ transform-origin:bottom;transition:.7s;
+}
+.base{
+ position:absolute;top:65px;left:7px;width:166px;height:75px;
+ background:linear-gradient(135deg,#bd7626,#713b18);
+ border:5px solid #f6b83f;border-radius:8px 8px 18px 18px;
+}
+.lock{
+ position:absolute;z-index:3;top:58px;left:70px;
+ width:40px;height:48px;border-radius:10px;
+ background:linear-gradient(#fff1a1,#e7a52d);
+ border:3px solid #fff0a0;
+}
+.lock:after{content:"";position:absolute;left:10px;top:10px;
+ width:13px;height:17px;border:3px solid #8c5418;border-radius:9px}
+.chest.open .lid{transform:rotate(-110deg) translateY(-15px)}
+@keyframes float{50%{transform:translateY(-9px)}}
+button{
+ border:0;border-radius:14px;padding:15px 23px;
+ background:linear-gradient(100deg,#00c9ff,#526bff);
+ color:white;font-weight:bold;font-size:16px;cursor:pointer;
+ box-shadow:0 5px 18px #168dff55;
+}
+button:active{transform:scale(.96)}
+button:disabled{opacity:.45}
+.info{display:flex;justify-content:center;gap:12px;margin:20px 0}
+.stat{background:#101b38;padding:12px 18px;border-radius:13px;color:#c5d6ff}
+#result{min-height:55px;margin:20px 0;color:#ffe28a;font-size:19px;font-weight:bold}
+.note{color:#8190b6;font-size:12px;line-height:1.6;margin-top:22px}
+.history{margin:25px auto;max-width:420px;text-align:left}
+.history h3{color:#9feaff}
+#records{color:#b9c6e5;font-size:14px;line-height:2}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">🤖 ABUKKI</div>
+ <div class="balance">💎 <span id="diamonds">0</span></div>
+</header>
+
+<h1>🎁 SIRLI QUTI</h1>
+<div class="sub">Sirni och. Sovriningni top. Olmos yig‘!</div>
+
+<div class="arena">
+ <div class="info">
+  <div class="stat">🔑 Kalit: <b id="keys">3</b></div>
+  <div class="stat">🎁 Ochilgan: <b id="opened">0</b></div>
+ </div>
+
+ <div class="chest" id="chest">
+  <div class="lid"></div>
+  <div class="base"></div>
+  <div class="lock"></div>
+ </div>
+
+ <div id="result">Qutida qanday sovrin bor ekan? 🤔</div>
+ <button id="openBtn" onclick="openChest()">🔓 QUTINI OCHISH</button>
+
+ <div class="note">
+  Har bir ochish uchun 1 ta bepul kalit kerak.<br>
+  Sovrin ehtimollari: 5 💎 — 50%, 10 💎 — 30%,<br>
+  20 💎 — 15%, 50 💎 — 5%.
+ </div>
+</div>
+
+<div class="history">
+ <h3>📜 Oxirgi sovrinlar</h3>
+ <div id="records">Hali sovrin yutilmadi.</div>
+</div>
+
+<div class="note">ABUKKI WORLD • SINOV VERSIYASI</div>
+
+<script>
+let diamonds=Number(localStorage.getItem("abukki_test_diamonds")||0);
+let keys=Number(localStorage.getItem("abukki_test_keys")||3);
+let opened=Number(localStorage.getItem("abukki_test_opened")||0);
+let records=JSON.parse(localStorage.getItem("abukki_test_records")||"[]");
+
+function save(){
+ localStorage.setItem("abukki_test_diamonds",diamonds);
+ localStorage.setItem("abukki_test_keys",keys);
+ localStorage.setItem("abukki_test_opened",opened);
+ localStorage.setItem("abukki_test_records",JSON.stringify(records));
+ update();
+}
+function update(){
+ document.getElementById("diamonds").textContent=diamonds;
+ document.getElementById("keys").textContent=keys;
+ document.getElementById("opened").textContent=opened;
+ document.getElementById("openBtn").disabled=keys<=0;
+ document.getElementById("records").innerHTML=records.length
+ ?records.map(x=>"💎 "+x+" olmos").join("<br>")
+ :"Hali sovrin yutilmadi.";
+}
+function openChest(){
+ if(keys<=0)return;
+ keys--;
+ let roll=Math.random()*100;
+ let prize=roll<50?5:roll<80?10:roll<95?20:50;
+ let chest=document.getElementById("chest");
+ let result=document.getElementById("result");
+ let btn=document.getElementById("openBtn");
+ btn.disabled=true;
+ chest.classList.add("open");
+ result.textContent="✨ Quti ochilmoqda...";
+ setTimeout(()=>{
+  diamonds+=prize;
+  opened++;
+  records.unshift(prize);
+  records=records.slice(0,5);
+  result.textContent="🎉 TABRIKLAYMIZ! +"+prize+" 💎";
+  chest.classList.remove("open");
+  save();
+ },900);
+}
+update();
+</script>
+</body>
+</html>
