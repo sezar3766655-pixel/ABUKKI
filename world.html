@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABUKKI WORLD</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#07111f;font-family:Arial;color:white}
+#game{width:100vw;height:100vh;display:block}
+.hud{position:fixed;top:15px;left:15px;right:15px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.panel{background:#071a2bdc;border:1px solid #27d9ff66;border-radius:12px;padding:12px}
+h2{color:#32dcff;font-size:19px}
+small{color:#b9d9e9}
+#help{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#071a2bdc;padding:12px 16px;border-radius:12px;text-align:center;width:max-content;max-width:95%;font-size:12px}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="hud">
+ <div class="panel"><h2>🌍 ABUKKI WORLD</h2><small>ABUKKI CITY · 001</small></div>
+ <div class="panel">💎 <span id="coins">0</span><br><small>Olmoslar</small></div>
+</div>
+<div id="help">W A S D — yurish · Sichqoncha yoki barmoq — kamerani aylantirish</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x8bc9ed);
+scene.fog=new THREE.Fog(0x8bc9ed,35,100);
+
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);
+camera.position.set(0,7,12);
+
+const renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#game'),antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x557755,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(15,25,10);
+sun.castShadow=true;
+scene.add(sun);
+
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshStandardMaterial({color:0x398b54}));
+ground.rotation.x=-Math.PI/2;
+ground.receiveShadow=true;
+scene.add(ground);
+
+function box(x,y,z,w,h,d,color){
+ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));
+ m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;
+}
+
+// Katta yo'llar
+box(0,.025,0,9,.05,100,0x343d4a);
+box(0,.03,0,100,.05,7,0x343d4a);
+
+// Yo'l chiziqlari
+for(let i=-45;i<=45;i+=6){
+ box(0,.06,i,.16,.02,2,0xffffff);
+ box(i,.06,0,2,.02,.16,0xffffff);
+}
+
+// Shahar binolari
+for(let x=-32;x<=32;x+=12){
+ for(let z=-32;z<=32;z+=12){
+  if(Math.abs(x)<9||Math.abs(z)<7)continue;
+  const h=5+Math.random()*12;
+  const colors=[0xe5e9f0,0xb7d7e9,0xd5c2a6,0x8da8c7,0xe5b9a0];
+  box(x,h/2,z,6,h,6,colors[Math.floor(Math.random()*colors.length)]);
+  for(let y=2;y<h-1;y+=3){
+   for(let side=-1;side<=1;side+=2){
+    box(x+side*3.02,y,z,0.05,1.2,1.4,0x79dcff);
+    box(x,y,z+side*3.02,1.4,1.2,0.05,0x79dcff);
+   }
+  }
+ }
+}
+
+// Daraxtlar
+for(let i=0;i<55;i++){
+ const x=(Math.random()-.5)*85,z=(Math.random()-.5)*85;
+ if(Math.abs(x)<7||Math.abs(z)<6)continue;
+ const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.2,.3,1.5),new THREE.MeshStandardMaterial({color:0x70452b}));
+ trunk.position.set(x,.75,z);scene.add(trunk);
+ const leaves=new THREE.Mesh(new THREE.SphereGeometry(1.1,10,10),new THREE.MeshStandardMaterial({color:0x176c37}));
+ leaves.position.set(x,2,z);leaves.castShadow=true;scene.add(leaves);
+}
+
+// O'yinchi
+const player=new THREE.Group();
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.55,.9,4,8),new THREE.MeshStandardMaterial({color:0x087fff}));
+body.position.y=1.05;body.castShadow=true;player.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.4,16,16),new THREE.MeshStandardMaterial({color:0xffd2ad}));
+head.position.y=2;player.add(head);
+scene.add(player);
+
+// Olmoslar
+const gems=[];
+const gemMat=new THREE.MeshStandardMaterial({color:0x00eaff,metalness:.5,roughness:.15,emissive:0x004466});
+for(let i=0;i<12;i++){
+ const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.55),gemMat);
+ gem.position.set((Math.random()-.5)*55,.9,(Math.random()-.5)*55);
+ scene.add(gem);gems.push(gem);
+}
+
+const keys={};
+addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+
+let coins=0,angle=0,drag=false,lastX=0;
+renderer.domElement.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{if(drag){angle-=(e.clientX-lastX)*.006;lastX=e.clientX}});
+
+function animate(){
+ requestAnimationFrame(animate);
+ const forward=new THREE.Vector3(-Math.sin(angle),0,-Math.cos(angle));
+ const right=new THREE.Vector3(Math.cos(angle),0,-Math.sin(angle));
+ if(keys.w||keys.arrowup)player.position.addScaledVector(forward,.13);
+ if(keys.s||keys.arrowdown)player.position.addScaledVector(forward,-.13);
+ if(keys.a||keys.arrowleft)player.position.addScaledVector(right,-.13);
+ if(keys.d||keys.arrowright)player.position.addScaledVector(right,.13);
+ player.position.x=THREE.MathUtils.clamp(player.position.x,-47,47);
+ player.position.z=THREE.MathUtils.clamp(player.position.z,-47,47);
+ player.rotation.y=angle;
+ const target=player.position.clone().add(new THREE.Vector3(Math.sin(angle)*9,6,Math.cos(angle)*9));
+ camera.position.lerp(target,.09);
+ camera.lookAt(player.position.x,1,player.position.z);
+ gems.forEach(g=>{
+  g.rotation.y+=.025;g.position.y=.9+Math.sin(Date.now()*.002+g.position.x)*.15;
+  if(g.position.distanceTo(player.position)<1.5){
+   scene.remove(g);gems.splice(gems.indexOf(g),1);
+   coins++;document.querySelector('#coins').textContent=coins;
+  }
+ });
+ renderer.render(scene,camera);
+}
+animate();
+addEventListener('resize',()=>{
+ camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+});
+</script>
+</body>
+</html>
