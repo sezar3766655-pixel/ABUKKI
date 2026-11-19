@@ -13,6 +13,17 @@ body{overflow:hidden;background:#07111f;font-family:Arial;color:white}
 h2{color:#32dcff;font-size:19px}
 small{color:#b9d9e9}
 #help{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#071a2bdc;padding:12px 16px;border-radius:12px;text-align:center;width:max-content;max-width:95%;font-size:12px}
+
+#joystick{
+ position:fixed;bottom:65px;left:22px;width:120px;height:120px;
+ border-radius:50%;background:#071a2b99;border:2px solid #32dcff;
+ touch-action:none;display:flex;align-items:center;justify-content:center;
+}
+#stick{
+ width:48px;height:48px;border-radius:50%;
+ background:#32dcff;border:3px solid white;
+ box-shadow:0 0 15px #32dcff;pointer-events:none;
+}
 </style>
 </head>
 <body>
@@ -21,6 +32,7 @@ small{color:#b9d9e9}
  <div class="panel"><h2>🌍 ABUKKI WORLD</h2><small>ABUKKI CITY · 001</small></div>
  <div class="panel">💎 <span id="coins">0</span><br><small>Olmoslar</small></div>
 </div>
+<div id="joystick"><div id="stick"></div></div>
 <div id="help">W A S D — yurish · Sichqoncha yoki barmoq — kamerani aylantirish</div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -188,14 +200,48 @@ for(let i=0;i<12;i++){
  scene.add(gem);gems.push(gem);
 }
 
+
 const keys={};
+const joystick=document.getElementById('joystick');
+const stick=document.getElementById('stick');
+let joyActive=false;
+
+joystick.addEventListener('pointerdown',e=>{
+ joyActive=true;
+ joystick.setPointerCapture(e.pointerId);
+ moveJoy(e);
+});
+joystick.addEventListener('pointermove',e=>{
+ if(joyActive) moveJoy(e);
+});
+function moveJoy(e){
+ const r=joystick.getBoundingClientRect();
+ let dx=e.clientX-(r.left+r.width/2);
+ let dy=e.clientY-(r.top+r.height/2);
+ const max=37;
+ const len=Math.hypot(dx,dy);
+ if(len>max){dx=dx/len*max;dy=dy/len*max;}
+ stick.style.transform=`translate(${dx}px,${dy}px)`;
+ keys.w=dy<-12;
+ keys.s=dy>12;
+ keys.a=dx<-12;
+ keys.d=dx>12;
+}
+function stopJoy(){
+ joyActive=false;
+ stick.style.transform='translate(0,0)';
+ keys.w=keys.s=keys.a=keys.d=false;
+}
+joystick.addEventListener('pointerup',stopJoy);
+joystick.addEventListener('pointercancel',stopJoy);
+
 addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 
 let coins=0,angle=0,drag=false,lastX=0;
 renderer.domElement.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX});
 addEventListener('pointerup',()=>drag=false);
-addEventListener('pointermove',e=>{if(drag){angle-=(e.clientX-lastX)*.006;lastX=e.clientX}});
+addEventListener('pointermove',e=>{if(drag){angle-=(e.clientX-lastX)*.012;lastX=e.clientX}});
 
 function animate(){
  requestAnimationFrame(animate);
