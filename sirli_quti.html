@@ -147,6 +147,11 @@ button:disabled{opacity:.45}
  </div>
 </div>
 
+<div class="history" id="leaderboard">
+ <h3>🏆 ABUKKI TOP O‘YINCHILAR</h3>
+ <div id="topPlayers">Reyting tayyorlanmoqda...</div>
+</div>
+
 <div class="history">
  <h3>📜 Oxirgi sovrinlar</h3>
  <div id="records">Hali sovrin yutilmadi.</div>
@@ -198,6 +203,31 @@ function updateProfile(){
  document.getElementById("profileXP").textContent=xp;
 }
 
+
+function updateLeaderboard(){
+ let name=playerName||"Noma'lum o'yinchi";
+ let players=JSON.parse(localStorage.getItem("abukki_local_players")||"[]");
+ let i=players.findIndex(x=>x.name===name);
+ let player={
+  name:name,
+  avatar:playerAvatar,
+  level:level,
+  xp:xp,
+  diamonds:diamonds
+ };
+ if(i>=0) players[i]=player;
+ else players.push(player);
+ players.sort((a,b)=>b.xp-a.xp);
+ localStorage.setItem("abukki_local_players",JSON.stringify(players));
+ let top=players.slice(0,10);
+ document.getElementById("topPlayers").innerHTML=top.map((x,n)=>
+  `<div class="profile-stat" style="margin:7px 0">
+   ${["🥇","🥈","🥉"][n]||("🏅 "+(n+1))} ${x.avatar} <b>${x.name}</b>
+   ⭐ LEVEL ${x.level} · ⚡ ${x.xp} XP · 💎 ${x.diamonds}
+  </div>`
+ ).join("")||"Hali o'yinchilar yo'q.";
+}
+
 function todayKey(){
  let d=new Date();
  return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
@@ -216,6 +246,7 @@ function claimDailyKey(){
 
 function update(){
  updateProfile();
+ updateLeaderboard();
  document.getElementById("diamonds").textContent=diamonds;
  document.getElementById("keys").textContent=keys;
  document.getElementById("opened").textContent=opened;
