@@ -2,125 +2,288 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ABUKKI ROBOT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABUKKI 3D ROBOT</title>
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;min-height:100vh;min-height:100dvh;
- background:radial-gradient(ellipse at center,#071a35,#020713 70%);
- color:white;font-family:Arial;
- display:flex;flex-direction:column;
- align-items:center;justify-content:space-evenly;
- padding:15px 12px 22px;overflow:auto;
+ margin:0;min-height:100vh;background:radial-gradient(circle,#102c50,#020713 75%);
+ color:white;font-family:Arial;display:flex;flex-direction:column;
+ align-items:center;justify-content:space-around;overflow:hidden;
 }
-h2{color:#48baff;letter-spacing:4px;margin:12px 0}
-.scene{width:100%;height:min(48vh,390px);display:flex;align-items:center;justify-content:center}
-.robot{width:min(310px,90vw);height:100%;filter:drop-shadow(0 0 25px #087dff);touch-action:none;overflow:visible}
-.eye{fill:#00c8ff;filter:drop-shadow(0 0 10px #00aaff)}
-#face{transition:.2s}
-#leftArm,#rightArm{transform-box:fill-box;transform-origin:top center;transition:transform .45s}
-.robot.happy #leftArm{transform:rotate(35deg)}
-.robot.happy #rightArm{transform:rotate(-35deg)}
-.robot.sad{animation:cry .13s 6}
-.robot.happy{animation:joy .35s 5 alternate}
-.robot.jump{animation:jump .4s 4}
-.robot.sleep{animation:sleep 2s infinite}
-@keyframes cry{25%{translate:-8px 0}75%{translate:8px 0}}
-@keyframes joy{to{translate:0 -10px;rotate:3deg}}
-@keyframes jump{50%{translate:0 -38px}}
-@keyframes sleep{50%{scale:.96}}
-#message{color:#8bdcff;font-size:19px;text-align:center;line-height:1.5;min-height:58px;margin:8px 0}
-#note{color:#789bbd;text-align:center;font-size:14px;margin:4px 0}
-.back{
- position:static;margin:12px auto 5px;
- border:0;border-radius:35px;padding:15px 30px;
- background:#087fff;color:white;font-size:18px;
+h2{color:#55caff;letter-spacing:4px;margin:15px}
+#scene{width:100vw;height:65vh;touch-action:none}
+#message{font-size:20px;color:#9be2ff;text-align:center;padding:8px}
+#note{font-size:13px;color:#7195b8}
+button{
+ border:0;border-radius:30px;padding:13px 27px;
+ background:#087fff;color:white;font-size:16px;margin:10px
 }
 </style>
 </head>
 <body>
 <h2>ABUKKI ROBOT</h2>
-<div class="scene">
-<svg class="robot" id="robot" viewBox="0 0 300 340">
-<defs>
- <linearGradient id="metal" x2="1" y2="1">
-  <stop stop-color="#fff"/><stop offset=".5" stop-color="#a9c8e8"/><stop offset="1" stop-color="#526d91"/>
- </linearGradient>
- <linearGradient id="dark" x2="0" y2="1">
-  <stop stop-color="#172e50"/><stop offset="1" stop-color="#020711"/>
- </linearGradient>
-</defs>
-<path d="M150 43V15" stroke="#b8d9ff" stroke-width="9"/>
-<circle cx="150" cy="13" r="12" fill="#00baff"/>
-<rect x="25" y="112" width="250" height="180" rx="62" fill="url(#metal)" stroke="#d8edff" stroke-width="5"/>
-<rect x="42" y="127" width="216" height="135" rx="55" fill="url(#dark)" stroke="#6caeff" stroke-width="5"/>
-<g id="face">
- <ellipse class="eye" cx="102" cy="190" rx="17" ry="25"/>
- <ellipse class="eye" cx="198" cy="190" rx="17" ry="25"/>
-</g>
-<path d="M100 291L80 327M200 291L220 327" stroke="url(#metal)" stroke-width="24" stroke-linecap="round"/>
-<g id="leftArm" stroke="url(#metal)" stroke-width="23" stroke-linecap="round" fill="none">
- <path d="M48 185 Q12 195 18 235"/>
-</g>
-<g id="rightArm" stroke="url(#metal)" stroke-width="23" stroke-linecap="round" fill="none">
- <path d="M252 185 Q288 195 282 235"/>
-</g>
-<circle cx="150" cy="283" r="22" fill="#087fff" stroke="#a9dcff" stroke-width="4"/>
-</svg>
-</div>
-<div id="message">Salom! Men ABUKKI robotman ❤️</div>
-<div id="note">Hozircha harakatlarim shu. Yaqinda yangilanaman! ❤️</div>
-<button class="back" onclick="history.back()">⬅️ Menyuga qaytish</button>
+<div id="scene"></div>
+<div id="message">Salom! Men ABUKKI ❤️</div>
+<div id="note">Silagin, aylantir yoki meni uyg‘ot! 🤖</div>
+<button onclick="history.back()">⬅️ Menyuga qaytish</button>
 
-<script>
-const r=document.getElementById("robot");
-const f=document.getElementById("face");
-const m=document.getElementById("message");
-let sx=0,sy=0,moved=false,timer,hold=false;
+<script type="module">
+import * as THREE from
+"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+const container=document.getElementById("scene");
+const message=document.getElementById("message");
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(
+45,container.clientWidth/container.clientHeight,0.1,100
+);
+camera.position.set(0,1.3,7);
+
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setSize(container.clientWidth,container.clientHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+container.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xb9ddff,0x17243a,2));
+const light=new THREE.DirectionalLight(0xffffff,3);
+light.position.set(4,6,5);
+light.castShadow=true;
+scene.add(light);
+
+const robot=new THREE.Group();
+scene.add(robot);
+
+const metal=new THREE.MeshStandardMaterial({
+ color:0xb8d5f0,metalness:.8,roughness:.23
+});
+const dark=new THREE.MeshStandardMaterial({
+ color:0x10243c,metalness:.5,roughness:.3
+});
+const blue=new THREE.MeshStandardMaterial({
+ color:0x00caff,emissive:0x0077ff,emissiveIntensity:1.5
+});
+
+function sphere(parent,x,y,z,sx,sy,sz,mat){
+ const mesh=new THREE.Mesh(
+  new THREE.SphereGeometry(1,40,32),mat
+ );
+ mesh.position.set(x,y,z);
+ mesh.scale.set(sx,sy,sz);
+ mesh.castShadow=true;
+ parent.add(mesh);
+ return mesh;
+}
+
+function cylinder(parent,x,y,z,rt,rb,h,mat){
+ const mesh=new THREE.Mesh(
+  new THREE.CylinderGeometry(rt,rb,h,32),mat
+ );
+ mesh.position.set(x,y,z);
+ parent.add(mesh);
+ return mesh;
+}
+
+// Tana
+sphere(robot,0,-.65,0,.85,1,.58,metal);
+sphere(robot,0,-.55,.48,.65,.72,.2,dark);
+sphere(robot,0,-.65,.7,.12,.12,.05,blue);
+
+// Bosh
+const head=new THREE.Group();
+head.position.y=.8;
+robot.add(head);
+sphere(head,0,0,0,1.05,.9,.72,metal);
+sphere(head,0,-.05,.54,.85,.65,.22,dark);
+
+// Ko‘zlar
+const leftEye=sphere(head,-.36,.03,.75,.16,.23,.1,blue);
+const rightEye=sphere(head,.36,.03,.75,.16,.23,.1,blue);
+sphere(head,-.39,.1,.83,.045,.06,.025,
+ new THREE.MeshBasicMaterial({color:"white"}));
+sphere(head,.33,.1,.83,.045,.06,.025,
+ new THREE.MeshBasicMaterial({color:"white"}));
+
+// Og‘iz
+let mouth;
+function setMouth(type){
+ if(mouth)head.remove(mouth);
+ let points;
+ if(type==="happy"){
+  points=[new THREE.Vector3(-.22,-.34,.77),
+  new THREE.Vector3(0,-.48,.82),
+  new THREE.Vector3(.22,-.34,.77)];
+ }else if(type==="sad"){
+  points=[new THREE.Vector3(-.22,-.46,.77),
+  new THREE.Vector3(0,-.32,.82),
+  new THREE.Vector3(.22,-.46,.77)];
+ }else{
+  points=[new THREE.Vector3(-.18,-.4,.79),
+  new THREE.Vector3(0,-.4,.82),
+  new THREE.Vector3(.18,-.4,.79)];
+ }
+ const curve=new THREE.QuadraticBezierCurve3(...points);
+ mouth=new THREE.Mesh(
+  new THREE.TubeGeometry(curve,20,.025,8,false),
+  blue
+ );
+ head.add(mouth);
+}
+setMouth("normal");
+
+// Qo‘llar
+const arms=[];
+for(const side of [-1,1]){
+ const arm=new THREE.Group();
+ arm.position.set(side*.8,-.35,0);
+ robot.add(arm);
+ sphere(arm,0,-.3,0,.18,.42,.18,metal);
+ sphere(arm,0,-.63,.02,.22,.2,.2,metal);
+ arms.push({arm,side});
+}
+
+// Oyoqlar
+for(const side of [-1,1]){
+ sphere(robot,side*.43,-1.55,.05,.23,.36,.25,metal);
+ sphere(robot,side*.43,-1.82,.18,.3,.14,.34,dark);
+}
+
+// Antenna
+cylinder(head,0,.96,0,.045,.07,.3,metal);
+sphere(head,0,1.13,0,.12,.12,.12,blue);
+
+// Ko‘z yoshlari
+const tears=[];
+for(const side of [-1,1]){
+ const tear=sphere(head,side*.38,-.18,.82,.055,.1,.04,blue);
+ tear.visible=false;
+ tears.push(tear);
+}
+
+let state="normal",timer,dragging=false;
+let startX=0,startY=0,lastX=0,moved=0;
+let rubbing=false;
 
 function normal(){
- r.className="robot";
- f.innerHTML='<ellipse class="eye" cx="102" cy="190" rx="17" ry="25"/><ellipse class="eye" cx="198" cy="190" rx="17" ry="25"/>';
+ state="normal";
+ tears.forEach(t=>t.visible=false);
+ leftEye.scale.y=.23;rightEye.scale.y=.23;
+ setMouth("normal");
+ message.textContent="Men shu yerdaman! ❤️";
+ arms.forEach(a=>a.arm.rotation.z=0);
 }
-function sleep(){
- r.className="robot sleep";
- f.innerHTML='<path d="M82 190 H122 M178 190 H218" stroke="#00c8ff" stroke-width="10" stroke-linecap="round"/>';
- m.textContent="Zzz... Men uxlab qoldim 😴";
-}
+
 function cry(){
  clearTimeout(timer);
- r.className="robot sad";
- f.innerHTML='<path d="M82 195 Q102 170 122 195 M178 195 Q198 170 218 195" stroke="#00c8ff" stroke-width="10" fill="none"/><path d="M125 238 Q150 255 175 238" stroke="#00c8ff" stroke-width="9" fill="none"/><circle cx="80" cy="215" r="8" fill="#00c8ff"/><circle cx="220" cy="215" r="8" fill="#00c8ff"/>';
- m.textContent="Voy, meni urding! Yig‘layapman 🥺";
+ state="sad";
+ setMouth("sad");
+ tears.forEach(t=>t.visible=true);
+ message.textContent="Voy! Meni urdingmi? Yig‘layapman 🥺";
  if(navigator.vibrate)navigator.vibrate(100);
- setTimeout(()=>{normal();wakeTimer()},2200);
+ setTimeout(()=>{
+  if(state==="sad"){normal();wakeTimer();}
+ },2500);
 }
+
 function happy(){
  clearTimeout(timer);
- r.className="robot happy";
- f.innerHTML='<path d="M80 190 Q102 155 124 190 M176 190 Q198 155 220 190" stroke="#00c8ff" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M120 220 Q150 255 180 220" stroke="#00c8ff" stroke-width="10" fill="none" stroke-linecap="round"/>';
- const words=["Hahaha! Qitiqlayapsan! 😂","Voy, juda yoqimli! ❤️","Yana silagin! 😍","Men juda xursandman! 🤗","Sen mening do‘stimsan! ✨","Voy-bo‘! 😁"];
- m.textContent=words[Math.floor(Math.random()*words.length)];
- if(navigator.vibrate)navigator.vibrate(35);
- setTimeout(()=>{normal();wakeTimer()},2600);
+ state="happy";
+ setMouth("happy");
+ tears.forEach(t=>t.visible=false);
+ message.textContent="Hahaha! Qitiqlayapsan! 😂❤️";
+ arms.forEach(a=>a.arm.rotation.z=-a.side*.8);
+ if(navigator.vibrate)navigator.vibrate(40);
+ setTimeout(()=>{
+  if(state==="happy"){normal();wakeTimer();}
+ },3000);
 }
+
+function sleepRobot(){
+ state="sleep";
+ tears.forEach(t=>t.visible=false);
+ leftEye.scale.y=.025;rightEye.scale.y=.025;
+ setMouth("sad");
+ message.textContent="Zzz... Men uxlayapman 😴";
+}
+
 function wakeTimer(){
  clearTimeout(timer);
- timer=setTimeout(sleep,9000);
+ timer=setTimeout(sleepRobot,9000);
 }
-r.addEventListener("pointerdown",e=>{
- clearTimeout(timer);sx=e.clientX;sy=e.clientY;moved=false;hold=false;
- r.setPointerCapture(e.pointerId);
+
+container.addEventListener("pointerdown",e=>{
+ dragging=true;
+ startX=e.clientX;
+ startY=e.clientY;
+ lastX=e.clientX;
+ moved=0;
+ rubbing=false;
+ clearTimeout(timer);
+ container.setPointerCapture(e.pointerId);
 });
-r.addEventListener("pointermove",e=>{
- if(Math.hypot(e.clientX-sx,e.clientY-sy)>10)moved=true;
+
+container.addEventListener("pointermove",e=>{
+ if(!dragging)return;
+ const dx=e.clientX-lastX;
+ moved+=Math.abs(dx)+Math.abs(e.clientY-startY)*.15;
+ if(moved>8){
+  rubbing=true;
+  robot.rotation.y+=dx*.012;
+  if(state!=="happy")happy();
+ }
+ lastX=e.clientX;
 });
-r.addEventListener("pointerup",()=>{
- if(moved)happy();else cry();
+
+container.addEventListener("pointerup",()=>{
+ if(!dragging)return;
+ dragging=false;
+ if(!rubbing){
+  if(state==="sleep")normal();
+  else cry();
+ }
+ wakeTimer();
 });
-r.addEventListener("pointercancel",()=>wakeTimer());
+
+container.addEventListener("pointercancel",()=>{
+ dragging=false;
+ wakeTimer();
+});
+
+let clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);
+ const t=clock.getElapsedTime();
+
+ if(state==="normal"){
+  robot.position.y=Math.sin(t*2)*.035;
+  head.rotation.y=Math.sin(t)*.035;
+ }
+ if(state==="sleep"){
+  robot.rotation.z=Math.sin(t)*.025;
+ }
+ if(state==="happy"){
+  robot.position.y=.08+Math.abs(Math.sin(t*8))*.15;
+ }
+ if(state==="sad"){
+  robot.position.x=Math.sin(t*20)*.045;
+  tears.forEach((tear,i)=>{
+   tear.position.y=-.18-((t*1.5+i*.5)% .5);
+  });
+ }
+ if(state!=="sad")robot.position.x=0;
+
+ renderer.render(scene,camera);
+}
+animate();
 wakeTimer();
+
+window.addEventListener("resize",()=>{
+ camera.aspect=container.clientWidth/container.clientHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(container.clientWidth,container.clientHeight);
+});
 </script>
 </body>
 </html>
