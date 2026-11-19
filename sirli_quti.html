@@ -67,6 +67,28 @@ button:disabled{opacity:.45}
 .history{margin:25px auto;max-width:420px;text-align:left}
 .history h3{color:#9feaff}
 #records{color:#b9c6e5;font-size:14px;line-height:2}
+
+.profile{
+ max-width:420px;margin:20px auto;padding:18px;
+ background:linear-gradient(145deg,#202e57,#111a35);
+ border:1px solid #40558b;border-radius:20px;text-align:left;
+}
+.profile h3{margin:0 0 15px;color:#91eaff}
+.profile input,.profile select{
+ width:100%;padding:12px;margin:6px 0 12px;
+ border-radius:10px;border:1px solid #536b9e;
+ background:#0c1530;color:white;font-size:15px;
+}
+.profile-stats{
+ display:grid;grid-template-columns:repeat(3,1fr);
+ gap:8px;margin-top:15px;text-align:center;
+}
+.profile-stat{
+ background:#0c1530;padding:12px 5px;border-radius:12px;
+ color:#b9d5ff;font-size:13px;
+}
+.profile-stat b{display:block;font-size:19px;color:#fff;margin-top:5px}
+
 </style>
 </head>
 <body>
@@ -74,6 +96,28 @@ button:disabled{opacity:.45}
  <div class="logo">🤖 ABUKKI</div>
  <div class="balance">💎 <span id="diamonds">0</span></div>
 </header>
+
+
+<div class="profile">
+ <h3>👤 MENING PROFILIM</h3>
+ <label>O‘yinchi ismi</label>
+ <input id="playerName" maxlength="20" placeholder="Ismingizni yozing">
+ <label>Avatar tanlang</label>
+ <select id="playerAvatar">
+  <option value="🤖">🤖 Robot</option>
+  <option value="🦊">🦊 Tulki</option>
+  <option value="🐼">🐼 Panda</option>
+  <option value="🦁">🦁 Sher</option>
+  <option value="🐉">🐉 Ajdarho</option>
+  <option value="👽">👽 O‘zga sayyoralik</option>
+ </select>
+ <button onclick="saveProfile()">💾 Profilni saqlash</button>
+ <div class="profile-stats">
+  <div class="profile-stat">💎 Olmos<b id="profileDiamonds">0</b></div>
+  <div class="profile-stat">🔑 Kalit<b id="profileKeys">0</b></div>
+  <div class="profile-stat">🎁 Qutilar<b id="profileOpened">0</b></div>
+ </div>
+</div>
 
 <h1>🎁 SIRLI QUTI</h1>
 <div class="sub">Sirni och. Sovriningni top. Olmos yig‘!</div>
@@ -121,6 +165,32 @@ function save(){
  localStorage.setItem("abukki_test_records",JSON.stringify(records));
  update();
 }
+
+let playerName=localStorage.getItem("abukki_player_name")||"";
+let playerAvatar=localStorage.getItem("abukki_player_avatar")||"🤖";
+
+function saveProfile(){
+ let name=document.getElementById("playerName").value.trim();
+ if(!name){
+  alert("Avval ismingizni yozing!");
+  return;
+ }
+ playerName=name;
+ playerAvatar=document.getElementById("playerAvatar").value;
+ localStorage.setItem("abukki_player_name",playerName);
+ localStorage.setItem("abukki_player_avatar",playerAvatar);
+ updateProfile();
+ alert("Profil saqlandi! 🤝");
+}
+
+function updateProfile(){
+ document.getElementById("playerName").value=playerName;
+ document.getElementById("playerAvatar").value=playerAvatar;
+ document.getElementById("profileDiamonds").textContent=diamonds;
+ document.getElementById("profileKeys").textContent=keys;
+ document.getElementById("profileOpened").textContent=opened;
+}
+
 function todayKey(){
  let d=new Date();
  return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
@@ -138,6 +208,7 @@ function claimDailyKey(){
 }
 
 function update(){
+ updateProfile();
  document.getElementById("diamonds").textContent=diamonds;
  document.getElementById("keys").textContent=keys;
  document.getElementById("opened").textContent=opened;
