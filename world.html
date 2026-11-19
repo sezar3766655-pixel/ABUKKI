@@ -90,12 +90,93 @@ for(let i=0;i<55;i++){
  leaves.position.set(x,2,z);leaves.castShadow=true;scene.add(leaves);
 }
 
-// O'yinchi
+// ABUKKI 3D INSON PERSONAJI
 const player=new THREE.Group();
-const body=new THREE.Mesh(new THREE.CapsuleGeometry(.55,.9,4,8),new THREE.MeshStandardMaterial({color:0x087fff}));
-body.position.y=1.05;body.castShadow=true;player.add(body);
-const head=new THREE.Mesh(new THREE.SphereGeometry(.4,16,16),new THREE.MeshStandardMaterial({color:0xffd2ad}));
-head.position.y=2;player.add(head);
+
+const skin=new THREE.MeshStandardMaterial({color:0xffc99f});
+const shirt=new THREE.MeshStandardMaterial({color:0x087fff});
+const pants=new THREE.MeshStandardMaterial({color:0x202b46});
+const shoes=new THREE.MeshStandardMaterial({color:0xffffff});
+const hair=new THREE.MeshStandardMaterial({color:0x29201b});
+
+// Tana
+const body=new THREE.Mesh(
+ new THREE.CapsuleGeometry(.39,.7,6,12),shirt
+);
+body.position.y=1.25;
+body.castShadow=true;
+player.add(body);
+
+// Bo'yin
+const neck=new THREE.Mesh(
+ new THREE.CylinderGeometry(.13,.15,.22,12),skin
+);
+neck.position.y=1.82;
+player.add(neck);
+
+// Bosh
+const head=new THREE.Mesh(
+ new THREE.SphereGeometry(.39,24,20),skin
+);
+head.position.y=2.17;
+head.castShadow=true;
+player.add(head);
+
+// Soch
+const hairTop=new THREE.Mesh(
+ new THREE.SphereGeometry(.4,20,12,0,Math.PI*2,0,Math.PI*.48),hair
+);
+hairTop.position.y=2.3;
+player.add(hairTop);
+
+// Ko'zlar
+for(const x of [-.14,.14]){
+ const eye=new THREE.Mesh(
+  new THREE.SphereGeometry(.045,12,12),
+  new THREE.MeshStandardMaterial({color:0x171717})
+ );
+ eye.position.set(x,2.2,-.345);
+ player.add(eye);
+}
+
+// Qo'llar
+const arms=[];
+for(const side of [-1,1]){
+ const arm=new THREE.Mesh(
+  new THREE.CapsuleGeometry(.13,.53,5,10),shirt
+ );
+ arm.position.set(side*.49,1.28,0);
+ arm.rotation.z=-side*.12;
+ arm.castShadow=true;
+ player.add(arm);
+ arms.push(arm);
+
+ const hand=new THREE.Mesh(
+  new THREE.SphereGeometry(.14,12,12),skin
+ );
+ hand.position.set(side*.51,.91,0);
+ player.add(hand);
+}
+
+// Oyoqlar
+const legs=[];
+for(const side of [-1,1]){
+ const leg=new THREE.Mesh(
+  new THREE.CapsuleGeometry(.17,.58,5,10),pants
+ );
+ leg.position.set(side*.21,.48,0);
+ leg.castShadow=true;
+ player.add(leg);
+ legs.push(leg);
+
+ const shoe=new THREE.Mesh(
+  new THREE.BoxGeometry(.34,.17,.48),shoes
+ );
+ shoe.position.set(side*.21,.12,-.1);
+ shoe.castShadow=true;
+ player.add(shoe);
+}
+
 scene.add(player);
 
 // Olmoslar
